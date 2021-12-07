@@ -1,5 +1,5 @@
-// Package models has struct of essence
-package models
+// Package model has struct of essence
+package model
 
 // Stock contains fields that describe the shares of companies
 type Stock struct {

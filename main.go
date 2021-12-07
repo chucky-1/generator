@@ -1,15 +1,15 @@
 package main
 
 import (
-	"generator/internal/configs"
-	"generator/internal/models"
-	"generator/internal/writer"
-
 	"github.com/caarlos0/env/v6"
+	"github.com/chucky-1/generator/internal/config"
+	"github.com/chucky-1/generator/internal/model"
+	"github.com/chucky-1/generator/internal/producer"
+	"github.com/chucky-1/generator/internal/repository"
 	"github.com/go-redis/redis/v8"
 	log "github.com/sirupsen/logrus"
 
-	"context"
+	"fmt"
 	"math/rand"
 	"strconv"
 	"time"
@@ -18,48 +18,30 @@ import (
 const (
 	countOfStocks   = 10
 	maxPriceOfStock = 1000
-	min             = 99
-	max             = 102
 	updateTime      = time.Second / 2
-	ctxForWrite     = time.Second
 )
-
-func write(w *writer.Writer, stock *models.Stock) error {
-	ctx, cancel := context.WithTimeout(context.Background(), ctxForWrite)
-	defer cancel()
-	err := w.Write(ctx, stock)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// generate updates price of stock
-func generate(stock *models.Stock) {
-	rate := float32(rand.Intn(max - min) + min) / 100
-	stock.Price *= rate
-}
 
 func main() {
 	// Configuration
-	cfg := new(configs.Config)
+	cfg := new(config.Config)
 	if err := env.Parse(cfg); err != nil {
-		log.Fatalf("%+v\n", err)
+		log.Fatalf("%v", err)
 	}
 
 	// Redis
-	hostAndPort := cfg.Host + ":" + cfg.Port
+	hostAndPort := fmt.Sprint(cfg.Host, ":", cfg.Port)
 	rdb := redis.NewClient(&redis.Options{Addr: hostAndPort})
 
-	w := writer.NewWriter(rdb)
+	rep := repository.NewRepository(rdb)
+	prod := producer.NewProducer(rep)
 
 	// Initial stocks
-	var stocks []*models.Stock
-	for i := 1; i < countOfStocks + 1; i++ {
-		title := "stock " + strconv.Itoa(i)
+	var stocks []*model.Stock
+	for i := 0; i < countOfStocks; i++ {
+		title := fmt.Sprint("stock", " ", strconv.Itoa(i+1))
 		price := float32(rand.Intn(maxPriceOfStock))
-		stock := models.Stock{
-			ID:    i,
+		stock := model.Stock{
+			ID:    i + 1,
 			Title: title,
 			Price: price,
 		}
@@ -67,15 +49,18 @@ func main() {
 	}
 
 	// Business logic
+	t := time.NewTicker(updateTime)
 	for {
-		for _, stock := range stocks {
-			generate(stock)
-			err := write(w, stock)
-			if err != nil {
-				log.Error(err)
+		select {
+		case <-t.C:
+			for _, stock := range stocks {
+				err := prod.Write(stock)
+				if err != nil {
+					log.Error(err)
+				} else {
+					log.Infof("%s costs %f", stock.Title, stock.Price)
+				}
 			}
-			log.Infof("%s costs %f", stock.Title, stock.Price)
 		}
-		time.Sleep(updateTime)
 	}
 }

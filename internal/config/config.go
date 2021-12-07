@@ -1,5 +1,5 @@
-// Package configs has a configuration structure
-package configs
+// Package config has a configuration structure
+package config
 
 // Config contains configuration data
 type Config struct {
