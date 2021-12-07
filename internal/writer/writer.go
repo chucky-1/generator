@@ -1,16 +1,20 @@
+// Package writer sends messages about prices change into stream
 package writer
 
 import (
 	"generator/internal/models"
+
 	"github.com/go-redis/redis/v8"
 
 	"context"
 )
 
+// Writer has client of redis
 type Writer struct {
 	rdb *redis.Client
 }
 
+// NewWriter is constructor
 func NewWriter(rdb *redis.Client) *Writer {
 	return &Writer{rdb: rdb}
 }

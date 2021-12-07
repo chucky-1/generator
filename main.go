@@ -35,12 +35,12 @@ func write(w *writer.Writer, stock *models.Stock) error {
 }
 
 // generate updates price of stock
-func generate(stock * models.Stock) {
+func generate(stock *models.Stock) {
 	rate := float32(rand.Intn(max - min) + min) / 100
-	stock.Price = stock.Price * rate
+	stock.Price *= rate
 }
 
-func main()  {
+func main() {
 	// Configuration
 	cfg := new(configs.Config)
 	if err := env.Parse(cfg); err != nil {
@@ -51,7 +51,7 @@ func main()  {
 	hostAndPort := cfg.Host + ":" + cfg.Port
 	rdb := redis.NewClient(&redis.Options{Addr: hostAndPort})
 
-	writer := writer.NewWriter(rdb)
+	w := writer.NewWriter(rdb)
 
 	// Initial stocks
 	var stocks []*models.Stock
@@ -70,7 +70,7 @@ func main()  {
 	for {
 		for _, stock := range stocks {
 			generate(stock)
-			err := write(writer, stock)
+			err := write(w, stock)
 			if err != nil {
 				log.Error(err)
 			}
