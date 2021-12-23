@@ -16,9 +16,9 @@ import (
 )
 
 const (
-	countOfStocks   = 10
+	countOfStocks   = 5
 	maxPriceOfStock = 1000
-	updateTime      = time.Second / 2
+	updateTime      = time.Second * 3
 )
 
 func main() {
