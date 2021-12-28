@@ -19,9 +19,9 @@ func NewRepository(rdb *redis.Client) *Repository {
 }
 
 // Write sends messages in stream
-func (g *Repository) Write(ctx context.Context, stock *model.Stock) error {
+func (g *Repository) Write(ctx context.Context, symbol *model.Symbol) error {
 	return g.rdb.XAdd(ctx, &redis.XAddArgs{
 		Stream: "stream",
-		Values: []interface{}{"ID", stock.ID, "Title", stock.Title, "Price", stock.Price},
+		Values: []interface{}{"ID", symbol.ID, "Bid", symbol.Bid, "Ask", symbol.Ask},
 	}).Err()
 }

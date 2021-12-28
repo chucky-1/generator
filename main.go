@@ -11,13 +11,12 @@ import (
 
 	"fmt"
 	"math/rand"
-	"strconv"
 	"time"
 )
 
 const (
-	countOfStocks   = 5
-	maxPriceOfStock = 1000
+	countOfSymbols   = 5
+	maxPriceOfSymbol = 1000
 	updateTime      = time.Second * 3
 )
 
@@ -35,17 +34,16 @@ func main() {
 	rep := repository.NewRepository(rdb)
 	prod := producer.NewProducer(rep)
 
-	// Initial stocks
-	var stocks []*model.Stock
-	for i := 0; i < countOfStocks; i++ {
-		title := fmt.Sprint("stock", " ", strconv.Itoa(i+1))
-		price := float32(rand.Intn(maxPriceOfStock))
-		stock := model.Stock{
-			ID:    i + 1,
-			Title: title,
-			Price: price,
+	// Initial symbols
+	var symbols []*model.Symbol
+	for i := 0; i < countOfSymbols; i++ {
+		bid := float32(rand.Intn(maxPriceOfSymbol))
+		symbol := model.Symbol{
+			ID:  i + 1,
+			Bid: bid,
+			Ask: bid - (bid * 0.02),
 		}
-		stocks = append(stocks, &stock)
+		symbols = append(symbols, &symbol)
 	}
 
 	// Business logic
@@ -53,12 +51,12 @@ func main() {
 	for {
 		select {
 		case <-t.C:
-			for _, stock := range stocks {
-				err := prod.Write(stock)
+			for _, symbol := range symbols {
+				err := prod.Write(symbol)
 				if err != nil {
 					log.Error(err)
 				} else {
-					log.Infof("%s costs %f", stock.Title, stock.Price)
+					log.Infof("%d costs. Bid: %f, ask: %f", symbol.ID, symbol.Bid, symbol.Ask)
 				}
 			}
 		}

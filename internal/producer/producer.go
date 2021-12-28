@@ -27,12 +27,13 @@ func NewProducer(rep *repository.Repository) *Producer {
 }
 
 // Write executes business logic and calls repository
-func (p *Producer) Write(stock *model.Stock) error {
-	// update price of stock
+func (p *Producer) Write(symbol *model.Symbol) error {
+	// update price of symbol
 	rate := float32(rand.Intn(max-min)+min) / 100
-	stock.Price *= rate
+	symbol.Bid *= rate
+	symbol.Ask = symbol.Bid - (symbol.Bid * 0.02)
 
 	ctx, cancel := context.WithTimeout(context.Background(), ctxForWrite)
 	defer cancel()
-	return p.rep.Write(ctx, stock)
+	return p.rep.Write(ctx, symbol)
 }
