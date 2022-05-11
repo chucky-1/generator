@@ -7,6 +7,7 @@ import (
 	"github.com/chucky-1/generator/internal/producer"
 	"github.com/chucky-1/generator/internal/repository"
 	"github.com/go-redis/redis/v8"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 
 	"fmt"
@@ -39,7 +40,7 @@ func main() {
 	for i := 0; i < countOfSymbols; i++ {
 		bid := float32(rand.Intn(maxPriceOfSymbol))
 		symbol := model.Symbol{
-			ID:  i + 1,
+			ID:  uuid.New(),
 			Bid: bid,
 			Ask: bid - (bid * 0.02),
 		}
